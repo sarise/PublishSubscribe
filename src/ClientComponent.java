@@ -2,6 +2,9 @@ import java.net.InetAddress;
 
 import java.net.UnknownHostException;
 
+import message.Publication;
+import message.Subscription;
+
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Event;
@@ -19,7 +22,7 @@ import se.sics.kompics.timer.Timer;
 public class ClientComponent extends ComponentDefinition {
 
 	// Positive<MyNetwork> myNetwork = positive(MyNetwork.class);
-	Positive<Network> myNetwork = requires(Network.class);
+	Positive<Network> network = requires(Network.class);
 	//Negative<Network> myNetwork = negative(Network.class);
 	private final int msgPeriod = 100;
 	private Address srcAddr = null;
@@ -40,7 +43,8 @@ public class ClientComponent extends ComponentDefinition {
 		// subscribe(initH, control);
 		
 		mina = create(MinaNetwork.class); 
-		connect(negative(Network.class), mina.getPositive(Network.class));
+		connect(this.negative(Network.class), mina.getPositive(Network.class));
+		
 		InetAddress inet = null;
 		try {
 			inet = InetAddress.getLocalHost();
@@ -49,10 +53,10 @@ public class ClientComponent extends ComponentDefinition {
 			e.printStackTrace();
 		}
 		srcAddr = new Address(inet, myPort, myId);
-		destAddr = new Address(inet, 5678, 2);
+		destAddr = new Address(inet, 1111, 0);
 
 		subscribe(startHandler, control);
-		subscribe(eventNotificationHandler, myNetwork);
+		subscribe(eventNotificationHandler, network);
 		// subscribe(messageHandler, network);
 		System.out.println("Client subscribed to start.");
 
@@ -72,7 +76,7 @@ public class ClientComponent extends ComponentDefinition {
 		
 		
 			System.out.println("Client triggering event.");
-			trigger(sub, myNetwork);
+			trigger(sub, network);
 			//trigger(sub, mina.getNegative(Network.class));
 
 			for (int i = 0; i < 1; i++) {
@@ -106,7 +110,7 @@ public class ClientComponent extends ComponentDefinition {
 
 	void publish(String topic, String info) {
 		System.out.println("Client is sending a publication.");
-		trigger(new Publication(topic, info, srcAddr, destAddr), myNetwork);
+		trigger(new Publication(topic, info, srcAddr, destAddr), network);
 		System.out.println("Publication sent.");
 	}
 

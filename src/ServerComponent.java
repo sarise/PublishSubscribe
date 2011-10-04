@@ -1,7 +1,12 @@
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 import java.util.Hashtable;
 import java.util.Vector;
+
+import message.Publication;
+import message.Subscription;
 
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
@@ -11,21 +16,38 @@ import se.sics.kompics.Handler;
 import se.sics.kompics.Negative;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.mina.MinaNetwork;
+import se.sics.kompics.network.mina.MinaNetworkInit;
 import se.sics.kompics.address.Address;
 
 public class ServerComponent extends ComponentDefinition {
 
+	private final int SERVER_PORT = 1111;
+	private final int SERVER_ID = 0;
 	// private Negative<MyNetwork> network = negative(MyNetwork.class);
 	private Positive<Network> network = requires(Network.class);
 
 	private Hashtable subcriptionRepository = new Hashtable();
 	private Vector<Publication> eventRepository = new Vector<Publication>();
-	Component mina;
+	private Component mina;
+	private Address myAddress;
+	
+	
 	
 	public ServerComponent() {
 		
+		InetAddress inet = null;
+		try {
+			inet = InetAddress.getLocalHost();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		myAddress = new Address(inet, SERVER_PORT, SERVER_ID);
+
+		MinaNetworkInit minaNetworkInit = new MinaNetworkInit(myAddress);
+		// how can I pass this mineNetworkInit to MinaNetwork???
 		mina = create(MinaNetwork.class); 
-		connect(negative(Network.class), mina.getPositive(Network.class));
+		connect(this.negative(Network.class), mina.getPositive(Network.class));
 		System.out.println("ServerComponent created.");
 		// messages = 0;
 		// subscribe(initH, control);
