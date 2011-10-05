@@ -6,7 +6,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import message.Publication;
-import message.Subscription;
+import message.SubscribeRequest;
 
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
@@ -19,63 +19,40 @@ import se.sics.kompics.network.mina.MinaNetwork;
 import se.sics.kompics.network.mina.MinaNetworkInit;
 import se.sics.kompics.address.Address;
 
-public class ServerComponent extends ComponentDefinition {
+public class Server extends ComponentDefinition {
 
-	private final int SERVER_PORT = 1111;
-	private final int SERVER_ID = 0;
-	// private Negative<MyNetwork> network = negative(MyNetwork.class);
-	private Positive<Network> network = requires(Network.class);
-
+	private Negative<Network> network = negative(Network.class);
 	private Hashtable subcriptionRepository = new Hashtable();
 	private Vector<Publication> eventRepository = new Vector<Publication>();
-	private Component mina;
-	private Address myAddress;
+	private Address serverAddress;
 	
+	public Server() {
 	
-	
-	public ServerComponent() {
-		
-		InetAddress inet = null;
-		try {
-			inet = InetAddress.getLocalHost();
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		myAddress = new Address(inet, SERVER_PORT, SERVER_ID);
-
-		MinaNetworkInit minaNetworkInit = new MinaNetworkInit(myAddress);
-		// how can I pass this mineNetworkInit to MinaNetwork???
-		mina = create(MinaNetwork.class); 
-		connect(this.negative(Network.class), mina.getPositive(Network.class));
 		System.out.println("ServerComponent created.");
-		// messages = 0;
-		// subscribe(initH, control);
 		
+		subscribe(initHandler, control);		
 		subscribe(startHandler, control);
 		subscribe(subscriptionHandler, network);
 		subscribe(eventPublicationHandler, network);
 		System.out.println("Server subscribed to sub.");
 	}
 
-	/*
-	 * Handler<Event> initH = new Handler<Event>() { public void handle(Event
-	 * init) { System.out.println("Server Component initialized."); }};
-	 */
+	Handler<ServerInit> initHandler = new Handler<ServerInit>() {
+		public void handle(ServerInit init) {
+			serverAddress = init.getServerAddress();
+			
+			System.out.println("Server " + serverAddress.getId() + " is initialized.");
+		}
+	};
 
 	Handler<Start> startHandler = new Handler<Start>() {
 		public void handle(Start event) {
 			System.out.println("Server Component started.");
 		}
 	};
-	/*
-	 * Handler<Message> incomingSubscriptionHandler = new Handler<Message>() {
-	 * public void handle(Message msg) { //messages++;
-	 * System.out.println("Server received subscription "); } };
-	 */
 
-	Handler<Subscription> subscriptionHandler = new Handler<Subscription>() {
-		public void handle(Subscription msg) {
+	Handler<SubscribeRequest> subscriptionHandler = new Handler<SubscribeRequest>() {
+		public void handle(SubscribeRequest msg) {
 			// messages++;
 			System.out
 					.println("Server received subscription " + msg.getTopic());
