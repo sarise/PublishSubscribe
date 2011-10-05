@@ -7,6 +7,7 @@ import java.util.Vector;
 import message.Publication;
 import message.SubscribeRequest;
 import message.UnsubscribeRequest;
+import message.Notification;
 
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
@@ -114,15 +115,20 @@ public class Server extends ComponentDefinition {
 			eventRepository.add(msg);
 
 			// EVENT NOTIFICATION SERVICE
+			Notification notification = new Notification(msg.getTopic(),
+					msg.getInfo(), serverAddress, null);
 			Vector<Address> subscriberlist = (Vector<Address>) subcriptionRepository
 					.get(msg.getTopic());
+			System.out.println("subscriberlist: " + subscriberlist.toString());
 			if (subscriberlist != null) {
+				System.out.println("subscriberlist is not null.");
 				for (Enumeration<Address> e = subscriberlist.elements(); e
 						.hasMoreElements();) {
 					Address subscriber = (Address) e.nextElement();
-					//msg.destination = subscriber;
-					trigger(msg, network);
-					System.out.println("Notified " + e);
+					notification.setDestination(subscriber);
+					System.out.println("Notification: " + notification.getDestination());
+					trigger(notification, network);
+					System.out.println("Notified " + subscriber);
 				}
 			}
 		}

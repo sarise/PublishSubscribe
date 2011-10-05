@@ -4,6 +4,7 @@ import java.net.UnknownHostException;
 import message.Publication;
 import message.SubscribeRequest;
 import message.UnsubscribeRequest;
+import message.Notification;
 
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
@@ -55,10 +56,10 @@ public class Peer extends ComponentDefinition {
 			sendSubscribeRequest(topic);
 
 			for (int i = 0; i < 1; i++) {
-				publish("Basketball", "XYZASD");
+				publish("Football", "XYZASD");
 			}
 
-			sendUnsubscribeRequest(topic);
+			//sendUnsubscribeRequest(topic);
 			
 			/*
 			 * SchedulePeriodicTimeout spt = new
@@ -79,11 +80,10 @@ public class Peer extends ComponentDefinition {
 
 	
 
-	Handler<Publication> eventNotificationHandler = new Handler<Publication>() {
-		public void handle(Publication msg) {
-			// messages++;
-			// msg.source.compareTo(new ())
-			System.out.println("Peer " + myAddress.getId() + " is received mesage from " + msg.getTopic());
+	Handler<Notification> eventNotificationHandler = new Handler<Notification>() {
+		public void handle(Notification msg) {
+			System.out.println("Peer " + myAddress.getId() 
+					+ " received a notification about " + msg.getTopic());
 		}
 	};
 	
