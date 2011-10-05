@@ -1,12 +1,12 @@
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
-
 import java.util.Hashtable;
 import java.util.Vector;
 
 import message.Publication;
 import message.SubscribeRequest;
+import message.UnsubscribeRequest;
 
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
@@ -32,7 +32,8 @@ public class Server extends ComponentDefinition {
 		
 		subscribe(initHandler, control);		
 		subscribe(startHandler, control);
-		subscribe(subscriptionHandler, network);
+		subscribe(subscribeHandler, network);
+		subscribe(unsubscribeHandler, network);
 		subscribe(eventPublicationHandler, network);
 		System.out.println("Server subscribed to sub.");
 	}
@@ -51,7 +52,7 @@ public class Server extends ComponentDefinition {
 		}
 	};
 
-	Handler<SubscribeRequest> subscriptionHandler = new Handler<SubscribeRequest>() {
+	Handler<SubscribeRequest> subscribeHandler = new Handler<SubscribeRequest>() {
 		public void handle(SubscribeRequest msg) {
 			// messages++;
 			System.out
@@ -82,21 +83,44 @@ public class Server extends ComponentDefinition {
 		}
 	};
 
+	
+	Handler<UnsubscribeRequest> unsubscribeHandler = new Handler<UnsubscribeRequest>() {
+		public void handle(UnsubscribeRequest msg) {
+			System.out.println("Server received UnsubscribeRequest " + msg.getTopic());
+
+			if (subcriptionRepository.containsKey(msg.getTopic())) {
+				Vector<Address> subscriberlist = (Vector<Address>) subcriptionRepository.
+						get(msg.getTopic());
+				subscriberlist.remove(msg.getSource()); // Will this mutate the
+														// instant in the object
+														// inside?
+
+				subcriptionRepository.remove(msg.getTopic());
+				subcriptionRepository.put(msg.getTopic(), subscriberlist);
+
+				System.out.println("Subscriber list for topic id "
+						+ msg.getTopic() + " : " + subscriberlist.toString());
+
+			} 
+		}
+	};
+
+	
 	Handler<Publication> eventPublicationHandler = new Handler<Publication>() {
 		public void handle(Publication msg) {
-			// messages++;
+			// EVENT REPOSITORY
 			System.out.println("Server received publication from "
 					+ msg.getTopic() + " " + msg.getInfo());
 			eventRepository.add(msg);
 
-			// Event Notification Service
+			// EVENT NOTIFICATION SERVICE
 			Vector<Address> subscriberlist = (Vector<Address>) subcriptionRepository
 					.get(msg.getTopic());
 			if (subscriberlist != null) {
 				for (Enumeration<Address> e = subscriberlist.elements(); e
 						.hasMoreElements();) {
 					Address subscriber = (Address) e.nextElement();
-					// msg.destination = subscriber;
+					//msg.destination = subscriber;
 					trigger(msg, network);
 					System.out.println("Notified " + e);
 				}

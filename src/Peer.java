@@ -1,9 +1,9 @@
 import java.net.InetAddress;
-
 import java.net.UnknownHostException;
 
 import message.Publication;
 import message.SubscribeRequest;
+import message.UnsubscribeRequest;
 
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
@@ -51,16 +51,15 @@ public class Peer extends ComponentDefinition {
 		public void handle(Start event) {
 			System.out.println("Peer " + myAddress.getId() + " is started.");
 			
-			SubscribeRequest sub = new SubscribeRequest("Football", myAddress, serverAddress);
-
-			//System.out.println("Peer " + myAddress.getId() + " is triggering subscription.");
-			trigger(sub, network);
-			
+			String topic = "Football";
+			sendSubscribeRequest(topic);
 
 			for (int i = 0; i < 1; i++) {
 				publish("Basketball", "XYZASD");
 			}
 
+			sendUnsubscribeRequest(topic);
+			
 			/*
 			 * SchedulePeriodicTimeout spt = new
 			 * SchedulePeriodicTimeout(msgPeriod, msgPeriod);
@@ -78,11 +77,7 @@ public class Peer extends ComponentDefinition {
 		}
 	};
 
-	void publish(String topic, String info) {
-		System.out.println("Peer " + myAddress.getId() + " is publishing an event.");
-		
-		trigger(new Publication(topic, info, myAddress, serverAddress), network);
-	}
+	
 
 	Handler<Publication> eventNotificationHandler = new Handler<Publication>() {
 		public void handle(Publication msg) {
@@ -91,5 +86,24 @@ public class Peer extends ComponentDefinition {
 			System.out.println("Peer " + myAddress.getId() + " is received mesage from " + msg.getTopic());
 		}
 	};
+	
+	// -------------------------------------------------------------------------
+	private void sendSubscribeRequest(String topic) {
+		System.out.println("Peer " + myAddress.getId() + " is triggering subscription.");
+		SubscribeRequest sub = new SubscribeRequest(topic, myAddress, serverAddress);
+		trigger(sub, network);
+	}
+	
+	private void sendUnsubscribeRequest(String topic) {
+		System.out.println("Peer " + myAddress.getId() + " is triggering subscription.");
+		UnsubscribeRequest unsub = new UnsubscribeRequest(topic, myAddress, serverAddress);
+		trigger(unsub, network);
+	}
+	
+	private void publish(String topic, String info) {
+		System.out.println("Peer " + myAddress.getId() + " is publishing an event.");
+		
+		trigger(new Publication(topic, info, myAddress, serverAddress), network);
+	}
 
 }

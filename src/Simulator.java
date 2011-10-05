@@ -46,6 +46,9 @@ public class Simulator extends ComponentDefinition {
 	
 	public Component createServer() {
 		server = create(Server.class);
+		trigger(new ServerInit(conf.getServerAddress()), 
+				server.getControl());
+		trigger(new Start(), server.getControl());
 		return server;
 		
 	}
