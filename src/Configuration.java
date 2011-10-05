@@ -3,6 +3,14 @@ import java.net.UnknownHostException;
 
 import se.sics.kompics.address.Address;
 
+/**
+ * The <code>Configuration</code> class.
+ * 
+ * @author Sari Setianingsih
+ * @author Jawad Manzoor
+ * Created on Oct 1, 2011
+ *
+ */
 
 public class Configuration {
 	

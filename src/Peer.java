@@ -20,6 +20,13 @@ import se.sics.kompics.network.mina.MinaNetwork;
 import se.sics.kompics.timer.SchedulePeriodicTimeout;
 import se.sics.kompics.timer.Timer;
 
+/**
+ * 
+ * @author Sari Setianingsih
+ * @author Jawad Manzoor
+ * Created on Oct 1, 2011
+ *
+ */
 public class Peer extends ComponentDefinition {
 
 	Positive<Network> network = requires(Network.class);

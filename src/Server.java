@@ -16,10 +16,15 @@ import se.sics.kompics.Start;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Negative;
 import se.sics.kompics.network.Network;
-import se.sics.kompics.network.mina.MinaNetwork;
-import se.sics.kompics.network.mina.MinaNetworkInit;
 import se.sics.kompics.address.Address;
 
+/**
+ * 
+ * @author Sari Setianingsih
+ * @author Jawad Manzoor
+ * Created on Oct 1, 2011
+ *
+ */
 public class Server extends ComponentDefinition {
 
 	private Negative<Network> network = negative(Network.class);

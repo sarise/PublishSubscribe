@@ -4,7 +4,12 @@ import se.sics.kompics.network.Network;
 
 
 /**
- * How to set my own port? How to send to one node?
+ * The <code>Main</code> class.
+ * 
+ * @author Sari Setianingsih
+ * @author Jawad Manzoor
+ * Created on Oct 1, 2011
+ *
  */
 public class Main extends ComponentDefinition {
 

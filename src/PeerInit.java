@@ -3,7 +3,13 @@ import se.sics.kompics.address.Address;
 import se.sics.kompics.p2p.bootstrap.BootstrapConfiguration;
 import se.sics.kompics.p2p.fd.ping.PingFailureDetectorConfiguration;
 
-
+/**
+ * 
+ * @author Sari Setianingsih
+ * @author Jawad Manzoor
+ * Created on Oct 1, 2011
+ *
+ */
 public class PeerInit extends Init {
 	
 	private final Address myAddress;

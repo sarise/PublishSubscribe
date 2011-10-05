@@ -4,7 +4,13 @@ import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Start;
 import se.sics.kompics.network.Network;
 
-
+/**
+ * 
+ * @author Sari Setianingsih
+ * @author Jawad Manzoor
+ * Created on Oct 1, 2011
+ *
+ */
 public class Simulator extends ComponentDefinition {
 	
 	private static final int NUMBER_OF_PEERS = 3;
@@ -26,6 +32,8 @@ public class Simulator extends ComponentDefinition {
 			createNewPeer();
 		}
 		*/
+		
+		//TODO: Create a stochastic process for simulation
 	}
 	
 	/**
