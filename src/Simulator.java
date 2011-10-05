@@ -19,9 +19,13 @@ public class Simulator extends ComponentDefinition {
 	public void run() {
 		createServer();
 		
+		createNewPeer();
+		createNewPeer2();
+		/*
 		for (int i = 0; i < NUMBER_OF_PEERS; i++) {
 			createNewPeer();
 		}
+		*/
 	}
 	
 	/**
@@ -33,6 +37,22 @@ public class Simulator extends ComponentDefinition {
 			return null;
 		
 		Component peer = create(Peer.class);
+		connect(peer.getNegative(Network.class),
+				server.getPositive(Network.class));
+		
+		trigger(new PeerInit(conf.getNewPeerAddress(), conf.getServerAddress()), 
+				peer.getControl());
+		trigger(new Start(), peer.getControl());
+		
+		return peer;
+		
+	}
+	
+	public Component createNewPeer2() {
+		if (server == null)
+			return null;
+		
+		Component peer = create(Peer2.class);
 		connect(peer.getNegative(Network.class),
 				server.getPositive(Network.class));
 		
