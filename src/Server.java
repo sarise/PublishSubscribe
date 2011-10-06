@@ -27,7 +27,7 @@ import se.sics.kompics.address.Address;
  */
 public class Server extends ComponentDefinition {
 
-	private Negative<Network> network = negative(Network.class);
+	private Positive<Network> network = positive(Network.class);
 	private Hashtable subcriptionRepository = new Hashtable();
 	private Vector<Publication> eventRepository = new Vector<Publication>();
 	private Address serverAddress;
