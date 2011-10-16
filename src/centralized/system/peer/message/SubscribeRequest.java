@@ -1,4 +1,4 @@
-package message;
+package centralized.system.peer.message;
 
 import se.sics.kompics.address.Address;
 import se.sics.kompics.network.Message;

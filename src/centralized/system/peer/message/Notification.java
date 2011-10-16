@@ -1,4 +1,6 @@
-package message;
+package centralized.system.peer.message;
+import java.math.BigInteger;
+
 import se.sics.kompics.address.Address;
 import se.sics.kompics.network.Message;
 
@@ -13,19 +15,19 @@ public class Notification extends Message{
 	
 	private static final long serialVersionUID = -9199390927629685995L;
 	private final String topic;
-	private String info;
+	private String content;
+	private long seqNumber;
 	
-	// flag unread??
-	
-	public Notification(String topic, String info, Address src, Address dest) {		
-		super(src, dest);
+	public Notification(String topic, String content, Address source, Address destination, long seqNumber) {		
+		super(source, destination);
 		this.topic = topic;
-		this.info = info;
+		this.content = content;
+		this.seqNumber = seqNumber;
 	}
 
 	
 	public void setInfo(String s) {
-		info = s;
+		content = s;
 	}
 
 	public String getTopic() {
@@ -33,11 +35,12 @@ public class Notification extends Message{
 	}
 
 	public String getInfo() {
-		return info;
+		return content;
 	}
 	
 	
 	public String toString() {
-		return "{" + topic + "|" + info + "|" + this.getDestination().toString() + "}";
+		return "{" + topic + "|" + content + "|" + this.getDestination().toString() + "}";
+		
 	}
 }
