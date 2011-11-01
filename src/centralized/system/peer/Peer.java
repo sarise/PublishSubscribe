@@ -3,6 +3,7 @@ package centralized.system.peer;
 
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -12,6 +13,7 @@ import centralized.simulator.snapshot.Snapshot;
 import centralized.system.peer.event.JoinPeer;
 import centralized.system.peer.event.PublishPeer;
 import centralized.system.peer.event.SubscribePeer;
+import centralized.system.peer.event.SubscriptionInit;
 import centralized.system.peer.event.UnsubscribePeer;
 import centralized.system.peer.message.Notification;
 import centralized.system.peer.message.Publication;
@@ -68,7 +70,9 @@ public final class Peer extends ComponentDefinition {
 	
 	private HashMap<BigInteger, BigInteger> mySubscriptions;				// <Topic ID, last sequence number>
 	private HashMap<BigInteger, Vector<Notification>> eventRepository;		// <Topic ID, list of Notification>
-	private HashMap<BigInteger, Vector<PeerAddress>> forwardingTable;		// <Topic ID, list of PeerAddress (your 
+	private HashMap<BigInteger, Vector<PeerAddress>> forwardingTable;		// <Topic ID, list of PeerAddress (your
+	
+	private BigInteger publicationSeqNum;
 
 //-------------------------------------------------------------------
 	public Peer() {
@@ -79,6 +83,8 @@ public final class Peer extends ComponentDefinition {
 
 		fd = create(PingFailureDetector.class);
 		bootstrap = create(BootstrapClient.class);
+		
+		publicationSeqNum = BigInteger.ONE;
 		
 		connect(network, fd.getNegative(Network.class));
 		connect(network, bootstrap.getNegative(Network.class));
@@ -95,6 +101,9 @@ public final class Peer extends ComponentDefinition {
 		subscribe(handleUnsubscribe, msPeerPort);
 		subscribe(handlePublish, msPeerPort);
 		
+		subscribe(handleSubscriptionInit, msPeerPort);
+
+		
 		subscribe(handleBootstrapResponse, bootstrap.getPositive(P2pBootstrap.class));
 		subscribe(handlePeerFailureSuspicion, fd.getPositive(FailureDetector.class));
 		
@@ -102,7 +111,7 @@ public final class Peer extends ComponentDefinition {
 		subscribe(eventNotificationHandler, network);
 		// subscribe(messageHandler, network);
 		
-		System.out.println("Peer subscribed to initHandler, startHandler, and eventNotificationHandler.");
+//		System.out.println("Peer subscribed to initHandler, startHandler, and eventNotificationHandler.");
 	}
 	
 	Handler<Notification> eventNotificationHandler = new Handler<Notification>() {
@@ -116,32 +125,33 @@ public final class Peer extends ComponentDefinition {
 	// Helper methods
 	
 	// -------------------------------------------------------------------------
-	private void sendSubscribeRequest(String topic) {
+	private void sendSubscribeRequest(BigInteger topicID, BigInteger lastSequenceNum) {
 		System.out.println("Peer " + myAddress.getId() + " is triggering subscription.");
 		
-		mySubscriptions.add(topic);
+		mySubscriptions.put(topicID, lastSequenceNum);
 		
-		SubscribeRequest sub = new SubscribeRequest(topic, myAddress, serverAddress);
-		System.out.println("ServerAddress" + serverAddress );
+		SubscribeRequest sub = new SubscribeRequest(topicID, lastSequenceNum, myAddress, serverAddress);
+//		System.out.println("ServerAddress" + serverAddress );
 		trigger(sub, network);
 	}
 	
-	private void sendUnsubscribeRequest(String topic) {
+	private void sendUnsubscribeRequest(BigInteger topicID) {
 		System.out.println("Peer " + myAddress.getId() + " is triggering subscription.");
-		UnsubscribeRequest unsub = new UnsubscribeRequest(topic, myAddress, serverAddress);
+		UnsubscribeRequest unsub = new UnsubscribeRequest(topicID, myAddress, serverAddress);
 		trigger(unsub, network);
 	}
 	
-	private void publish(String topic, String info) {
+	private void publish(BigInteger topicID, String content) {
 		System.out.println("Peer " + myAddress.getId() + " is publishing an event.");
 		
-		trigger(new Publication(topic, info, myAddress, serverAddress), network);
+		trigger(new Publication(topicID, publicationSeqNum, content, myAddress, serverAddress), network);
+		publicationSeqNum.add(BigInteger.ONE);
 	}
 	
 	Handler<Start> handleStart = new Handler<Start>() {
 		@Override
 		public void handle(Start event) {
-			System.out.println("Peer -- inside the handleStart()");
+//			System.out.println("Peer -- inside the handleStart()");
 			/*
 			System.out.println("Peer " + myAddress.getId() + " is started.");
 			Address add = new Address(myAddress.getIp(), myAddress.getPort(), myAddress.getId()-1);
@@ -157,6 +167,23 @@ public final class Peer extends ComponentDefinition {
 			//sendUnsubscribeRequest(topic);
 		}
 	};
+	
+	Handler<SubscriptionInit> handleSubscriptionInit = new Handler<SubscriptionInit>() {
+		@Override
+		public void handle(SubscriptionInit si) {
+			Vector<BigInteger> topicIDs = si.getTopicIDs();
+			
+			Iterator it = topicIDs.iterator();
+			while(it.hasNext()) {
+				BigInteger topicID = (BigInteger) it.next();			
+				sendSubscribeRequest(topicID, BigInteger.ZERO);
+				
+			}
+			
+
+		}
+	};
+
 
 //-------------------------------------------------------------------
 // This handler initiates the Peer component.	
@@ -175,6 +202,8 @@ public final class Peer extends ComponentDefinition {
 
 			trigger(new BootstrapClientInit(myAddress, init.getBootstrapConfiguration()), bootstrap.getControl());
 			trigger(new PingFailureDetectorInit(myAddress, init.getFdConfiguration()), fd.getControl());
+			
+			System.out.println("Peer " + myAddress.getId() + " is initialized.");
 		}
 	};
 
@@ -199,7 +228,13 @@ public final class Peer extends ComponentDefinition {
 	Handler<SubscribePeer> handleSubscribe = new Handler<SubscribePeer>() {
 		@Override
 		public void handle(SubscribePeer event) {
-			sendSubscribeRequest(TopicList.getRandomTopic());
+			BigInteger topicID = TopicList.getRandomTopic(); // TODO: randomization should come from the simulation class, so that for different simulation, we only need to modify the simulation class
+			
+			BigInteger lastSequenceNumber = BigInteger.ZERO;
+			if (mySubscriptions.containsKey(topicID))
+				lastSequenceNumber = mySubscriptions.get(topicID);
+				
+			sendSubscribeRequest(topicID, lastSequenceNumber);
 			
 		}
 	};
@@ -207,20 +242,28 @@ public final class Peer extends ComponentDefinition {
 	Handler<UnsubscribePeer> handleUnsubscribe = new Handler<UnsubscribePeer>() {
 		@Override
 		public void handle(UnsubscribePeer event) {
-			System.out.println("in UnsubscribePeer");
+			
+			System.out.println("Peer " + myAddress.getId() + " is unsubscribing an event.");
+
+			/*
 			if (!mySubscriptions.isEmpty()) {
-				String topic = mySubscriptions.remove(0); 	// TODO: we can randomize later.
-				sendUnsubscribeRequest(topic);
+				Set<BigInteger> topicIDs = mySubscriptions.keySet(); // TODO: we can randomize later. randomization should be done in the simulation class.
+				    Iterator<BigInteger> it = topicIDs.iterator();
+					BigInteger topicID = it.next();
+					mySubscriptions.remove(topicID); 
+					sendUnsubscribeRequest(topicID);
 			}
+			*/
 		}
 	};
 	
 	Handler<PublishPeer> handlePublish = new Handler<PublishPeer>() {
 		@Override
 		public void handle(PublishPeer event) {
-			System.out.println("in PublishPeer");
-			String info = "Test";
-			publish(TopicList.getRandomTopic(), info);	// Assumptions: we can publish something that we don't subscribe
+			String info = "Test"; 
+			//publish(TopicList.getRandomTopic(), info);	// Assumptions: we can publish something that we don't subscribe
+			
+			publish(myPeerAddress.getPeerId(), info);
 		}
 	};
 

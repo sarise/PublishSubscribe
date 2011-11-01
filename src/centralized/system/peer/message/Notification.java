@@ -14,33 +14,37 @@ import se.sics.kompics.network.Message;
 public class Notification extends Message{
 	
 	private static final long serialVersionUID = -9199390927629685995L;
-	private final String topic;
+	private final BigInteger topicID;
 	private String content;
-	private long seqNumber;
+	private BigInteger sequenceNum;
 	
-	public Notification(String topic, String content, Address source, Address destination, long seqNumber) {		
+	public Notification(BigInteger topicID, BigInteger sequenceNum, String content, Address source, Address destination) {		
 		super(source, destination);
-		this.topic = topic;
+		this.topicID = topicID;
 		this.content = content;
-		this.seqNumber = seqNumber;
+		this.sequenceNum = sequenceNum;
 	}
 
 	
-	public void setInfo(String s) {
-		content = s;
+	public void setContent(String content) {
+		this.content = content;
+	}
+	
+	public BigInteger getSequenceNum() {
+		return sequenceNum;
 	}
 
-	public String getTopic() {
-		return topic;
+	public BigInteger getTopic() {
+		return topicID;
 	}
 
-	public String getInfo() {
+	public String getContent() {
 		return content;
 	}
 	
 	
 	public String toString() {
-		return "{" + topic + "|" + content + "|" + this.getDestination().toString() + "}";
+		return "{" + topicID + "|" + content + "|" + this.getDestination().toString() + "}";
 		
 	}
 }

@@ -3,6 +3,7 @@ package centralized.simulator.scenarios;
 
 import java.math.BigInteger;
 
+import centralized.simulator.core.event.AllPeerSubscribe;
 import centralized.simulator.core.event.PeerFail;
 import centralized.simulator.core.event.PeerJoin;
 import centralized.simulator.core.event.PeerPublish;
@@ -40,6 +41,13 @@ public class Operations {
 	static Operation1<PeerSubscribe, BigInteger> peerSubscribe = new Operation1<PeerSubscribe, BigInteger>() {
 			public PeerSubscribe generate(BigInteger id) {
 				return new PeerSubscribe(id);
+			}
+		};
+		
+//-------------------------------------------------------------------
+	static Operation1<AllPeerSubscribe, BigInteger> allPeerSubscribe = new Operation1<AllPeerSubscribe, BigInteger>() {
+			public AllPeerSubscribe generate(BigInteger id) {
+				return new AllPeerSubscribe(id);
 			}
 		};
 		

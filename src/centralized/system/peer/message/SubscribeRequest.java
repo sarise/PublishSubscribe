@@ -1,5 +1,7 @@
 package centralized.system.peer.message;
 
+import java.math.BigInteger;
+
 import se.sics.kompics.address.Address;
 import se.sics.kompics.network.Message;
 
@@ -13,15 +15,18 @@ import se.sics.kompics.network.Message;
 public class SubscribeRequest extends Message {
 	
 	private static final long serialVersionUID = 2876631073644631897L;
-	private final String topic;
+	private final BigInteger topicID;
+	private final BigInteger lastSequenceNum;
 
-	public SubscribeRequest(String s, Address src, Address dest) {		
+	public SubscribeRequest(BigInteger topicID, BigInteger lastSequenceNum, Address src, Address dest) {		
 		super( src, dest);
-		topic = s;
+		this.topicID = topicID;
+		this.lastSequenceNum = lastSequenceNum;
 	}
 
-	public String getTopic() {
-		return topic;
+	public BigInteger getTopic() {
+		return this.topicID;
 	}
+
 
 }

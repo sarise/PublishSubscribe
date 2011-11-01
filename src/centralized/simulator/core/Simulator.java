@@ -2,9 +2,16 @@ package centralized.simulator.core;
 
 
 import java.math.BigInteger;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Vector;
 
 import centralized.main.Configuration;
+import centralized.simulator.core.event.AllPeerSubscribe;
 import centralized.simulator.core.event.PeerFail;
 import centralized.simulator.core.event.PeerJoin;
 import centralized.simulator.core.event.PeerPublish;
@@ -22,6 +29,7 @@ import centralized.system.peer.event.JoinPeer;
 import centralized.system.peer.event.PublishPeer;
 import centralized.system.peer.event.StartServer;
 import centralized.system.peer.event.SubscribePeer;
+import centralized.system.peer.event.SubscriptionInit;
 import centralized.system.peer.event.UnsubscribePeer;
 
 import se.sics.kompics.ChannelFilter;
@@ -59,6 +67,8 @@ public final class Simulator extends ComponentDefinition {
 	private BootstrapConfiguration bootstrapConfiguration;
 	private PeerConfiguration peerConfiguration;	
 	private PingFailureDetectorConfiguration fdConfiguration;
+	
+	private Vector<BigInteger>[] blocks;
 
 //-------------------------------------------------------------------	
 	public Simulator() {
@@ -76,6 +86,7 @@ public final class Simulator extends ComponentDefinition {
 		subscribe(handlePeerSubscribe, simulator);
 		subscribe(handlePeerUnsubscribe, simulator);
 		subscribe(handlePeerPublish, simulator);
+		subscribe(handleAllPeerSubscribe, simulator);
 	}
 
 //-------------------------------------------------------------------	WE HAVE INITIALIZED THE INFORMATION IN CONSTRUCTOR
@@ -159,9 +170,8 @@ public final class Simulator extends ComponentDefinition {
 	Handler<PeerSubscribe> handlePeerSubscribe = new Handler<PeerSubscribe>() {
 		public void handle(PeerSubscribe event) {
 			BigInteger id = view.getNode(event.getPeerId());
-			// hash
 			Component peer = peers.get(id);
-			System.out.println(view + ", id: " + id + ", event id:" + event.getPeerId());
+//			System.out.println(view + ", id: " + id + ", event id:" + event.getPeerId());
 
 			Positive pos = peer.getPositive(PeerPort.class);
 			SubscribePeer sp = new SubscribePeer();
@@ -176,11 +186,28 @@ public final class Simulator extends ComponentDefinition {
 		}
 	};
 	
+	Handler<AllPeerSubscribe> handleAllPeerSubscribe = new Handler<AllPeerSubscribe>() {
+		public void handle(AllPeerSubscribe event) {
+			
+			Properties configFile = new Properties();
+			try {
+				configFile.load(this.getClass().getClassLoader().getResourceAsStream("simulation.properties"));
+			} catch (Exception e) {
+				System.err.println("Error: couldn't load the properties file in Scenario1.java");
+			}
+			
+			int peersPerBlock = Integer.parseInt(configFile.getProperty("SubscriptionsPerNode"));
+			
+			determineSubscription(true, peersPerBlock);
+		
+		}
+	};
+	
 	//-------------------------------------------------------------------	
 	Handler<PeerUnsubscribe> handlePeerUnsubscribe = new Handler<PeerUnsubscribe>() {
 		public void handle(PeerUnsubscribe event) {
 			// TODO: change the implementation
-			//System.err.println("PeerUnsubscribe -- not implemented yet.");
+			System.err.println("PeerUnsubscribe -- not implemented yet.");
 			
 			
 			BigInteger id = view.getNode(event.getPeerId());
@@ -208,7 +235,7 @@ public final class Simulator extends ComponentDefinition {
 			
 			BigInteger id = view.getNode(event.getPeerId());
 			Component peer = peers.get(id);
-			System.out.println(view.getTree() + ", id: " + id + ", event id:" + event.getPeerId());
+//			System.out.println(view.getTree() + ", id: " + id + ", event id:" + event.getPeerId());
 			if (peer == null)
 				System.out.println("---------------------");
 			Positive pos = peer.getPositive(PeerPort.class);
@@ -253,6 +280,52 @@ public final class Simulator extends ComponentDefinition {
 		return peer;
 	}
 
+	//-------------------------------------------------------------------	
+	private final void determineSubscription(boolean isFixed, int peersPerBlock) {
+		int numOfBlocks = peers.size() / peersPerBlock;
+		
+		// give the leftover to the last block
+		
+		
+		this.blocks = new Vector[numOfBlocks];
+		
+		Iterator it = this.peersAddress.entrySet().iterator();
+		loop:
+		for (int i = 0; i < numOfBlocks; i++) {
+			// for each block
+			blocks[i] = new Vector<BigInteger>();
+			for (int j = 0; j < peersPerBlock; j++) {
+				if (!it.hasNext())
+					break loop;
+				
+				Map.Entry entry = (Map.Entry) it.next();
+				BigInteger topicID = (BigInteger) entry.getKey();
+				blocks[i].add(topicID);
+			}	
+		}
+		
+		// handle the leftover: spread them to the first few blocks
+		int count = 0;
+		while (it.hasNext()) {
+			Map.Entry entry = (Map.Entry) it.next();
+			BigInteger topicID = (BigInteger) entry.getKey();
+			
+			blocks[count++].add(topicID);			
+		}
+
+		Random rand = new Random();
+		Iterator it2 = peers.entrySet().iterator();
+		while(it2.hasNext()) {
+			Map.Entry entry = (Map.Entry) it2.next();
+			Component peer = (Component) entry.getValue();
+			
+			
+			SubscriptionInit si = new SubscriptionInit(blocks[rand.nextInt(numOfBlocks)]);
+			Positive pos = peer.getPositive(PeerPort.class);
+			trigger(si, pos);
+		}		
+		
+	}
 //-------------------------------------------------------------------	
 	private final void stopAndDestroyPeer(BigInteger id) {
 		Component peer = peers.get(id);

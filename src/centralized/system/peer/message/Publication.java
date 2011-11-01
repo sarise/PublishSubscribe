@@ -1,4 +1,6 @@
 package centralized.system.peer.message;
+import java.math.BigInteger;
+
 import centralized.system.peer.PeerAddress;
 import se.sics.kompics.address.Address;
 import se.sics.kompics.network.Message;
@@ -14,29 +16,31 @@ public class Publication extends Message{
 	
 
 	private static final long serialVersionUID = 6781177817829311117L;
-	private final String topic;
+	private final BigInteger topicID;
 	private String content;
-	private long seqNumber;
+	private BigInteger sequenceNum;
 
 	
-	public Publication(String topic, String content, Address source, Address destination, long seqNumber) {		
+	public Publication(BigInteger topicID, BigInteger seqNum, String content, Address source, Address destination) {		
 		super(source, destination);
-		this.topic = topic;
+		this.topicID = topicID;
 		this.content = content;
-		this.seqNumber = seqNumber;
+		this.sequenceNum = sequenceNum;
 	}
 
+	public BigInteger getSequenceNum() {
+		return sequenceNum;
+	}
 	
-public void setInfo(String s) {
-		
-		content = s;
+	public void setContent(String content) {
+		this.content = content;
 	}
 
-	public String getTopic() {
-		return topic;
+	public BigInteger getTopic() {
+		return topicID;
 	}
 
-	public String getInfo() {
+	public String getContent() {
 		return content;
 	}
 }

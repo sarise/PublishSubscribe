@@ -1,5 +1,6 @@
 package centralized.simulator.core;
 
+import centralized.simulator.core.event.AllPeerSubscribe;
 import centralized.simulator.core.event.PeerFail;
 import centralized.simulator.core.event.PeerJoin;
 import centralized.simulator.core.event.PeerPublish;
@@ -16,5 +17,6 @@ public class SimulatorPort extends PortType {{
 	positive(PeerSubscribe.class);
 	positive(PeerUnsubscribe.class);
 	positive(PeerPublish.class);
+	positive(AllPeerSubscribe.class);
 	negative(TerminateExperiment.class);
 }}

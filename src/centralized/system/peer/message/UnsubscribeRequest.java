@@ -1,5 +1,7 @@
 package centralized.system.peer.message;
 
+import java.math.BigInteger;
+
 import se.sics.kompics.address.Address;
 import se.sics.kompics.network.Message;
 
@@ -13,15 +15,15 @@ import se.sics.kompics.network.Message;
 public class UnsubscribeRequest extends Message {
 	
 	private static final long serialVersionUID = -3963584253785169395L;
-	private final String topic;
+	private final BigInteger topicID;
 
-	public UnsubscribeRequest(String s, Address src, Address dest) {		
+	public UnsubscribeRequest(BigInteger topicID, Address src, Address dest) {		
 		super( src, dest);
-		topic = s;
+		this.topicID = topicID;
 	}
 
-	public String getTopic() {
-		return topic;
+	public BigInteger getTopic() {
+		return topicID;
 	}
 
 }

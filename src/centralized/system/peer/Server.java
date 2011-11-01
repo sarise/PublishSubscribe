@@ -75,6 +75,8 @@ public class Server extends ComponentDefinition {
 	private Hashtable subcriptionRepository = new Hashtable();
 	private Vector<Publication> eventRepository = new Vector<Publication>();
 	
+	static int counter = 0;
+	
 	public Server() {
 	
 		System.out.println("  ServerComponent created.");
@@ -105,7 +107,7 @@ public class Server extends ComponentDefinition {
 		subscribe(unsubscribeHandler, network);
 		subscribe(eventPublicationHandler, network);
 		
-		System.out.println("  Server subscribed to sub.");
+//		System.out.println("  Server subscribed to sub.");
 	}
 
 	Handler<Start> handleStart = new Handler<Start>() {
@@ -117,8 +119,7 @@ public class Server extends ComponentDefinition {
 	Handler<SubscribeRequest> subscribeHandler = new Handler<SubscribeRequest>() {
 		public void handle(SubscribeRequest msg) {
 			// messages++;
-			System.out
-					.println("  Server received subscription " + msg.getTopic());
+//			System.out.println("  Server received subscription " + msg.getTopic());
 
 			if (subcriptionRepository.containsKey(msg.getTopic())) {
 				Vector<Address> subscriberlist = (Vector<Address>) subcriptionRepository
@@ -133,16 +134,17 @@ public class Server extends ComponentDefinition {
 					subcriptionRepository.remove(msg.getTopic());
 					subcriptionRepository.put(msg.getTopic(), subscriberlist);
 				}
-				System.out.println("  Subscriber list for topic id "
-						+ msg.getTopic() + " : " + subscriberlist.toString());
+				
+//				System.out.println("  Subscriber list for topic id "
+//						+ msg.getTopic() + " : " + subscriberlist.toString());
 
 			} else {
 				Vector<Address> subscriberlist = new Vector<Address>();
 				subscriberlist.add(msg.getSource());
-				System.out.println("  Address source: " + msg.getSource());
+//				System.out.println("  Address source: " + msg.getSource());
 				subcriptionRepository.put(msg.getTopic(), subscriberlist);
 
-				System.out.println("  Subscriber list for topic id "
+				System.out.println("  Subscriber list for topic id (new topic)"
 						+ msg.getTopic() + " : " + subscriberlist.toString());
 			}
 		}
@@ -163,8 +165,8 @@ public class Server extends ComponentDefinition {
 				subcriptionRepository.remove(msg.getTopic());
 				subcriptionRepository.put(msg.getTopic(), subscriberlist);
 
-				System.out.println("  Subscriber list for topic id "
-						+ msg.getTopic() + " : " + subscriberlist.toString());
+//				System.out.println("  Subscriber list for topic id "
+//						+ msg.getTopic() + " : " + subscriberlist.toString());
 
 			} 
 		}
@@ -172,32 +174,38 @@ public class Server extends ComponentDefinition {
 
 	
 	Handler<Publication> eventPublicationHandler = new Handler<Publication>() {
-		public void handle(Publication msg) {
+		public void handle(Publication publication) {
 			// EVENT REPOSITORY
 			System.out.println("  Server received publication from "
-					+ msg.getTopic() + " " + msg.getInfo());
-			eventRepository.add(msg);
+					+ publication.getTopic() + " " + publication.getContent() + " counter "+counter++);
+			eventRepository.add(publication);
 
 			// EVENT NOTIFICATION SERVICE
-			Notification notification = new Notification(msg.getTopic(),
-					msg.getInfo(), serverAddress, null);
+			
 			Vector<Address> subscriberlist = (Vector<Address>) subcriptionRepository
-					.get(msg.getTopic());
+					.get(publication.getTopic());
 			
 			if (subscriberlist != null) {
 				System.out.println("  subscriberlist: " + subscriberlist.toString());
-				System.out.println("  subscriberlist is not null.");
+//				System.out.println("  subscriberlist is not null.");
 				for (Enumeration<Address> e = subscriberlist.elements(); e
 						.hasMoreElements();) {
 					Address subscriber = (Address) e.nextElement();
-					notification.setDestination(subscriber);
-					System.out.println("Notification: " + notification.getDestination());
+					
+					Notification notification = new Notification(
+							publication.getTopic(),
+							publication.getSequenceNum(),
+							publication.getContent(), 
+							serverAddress,
+							subscriber);
+					
+//					System.out.println("Notification: " + notification.getDestination());
 					trigger(notification, network);
-					System.out.println("Notified " + subscriber);
+//					System.out.println("Notified " + subscriber);
 				}
 			}
 			else
-				System.out.println("  No subscriber for topic " + msg.getTopic());
+				System.out.println("  No subscriber for topic " + publication.getTopic());
 		}
 	};
 	
