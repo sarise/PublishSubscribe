@@ -18,6 +18,7 @@ import centralized.simulator.core.event.PeerPublish;
 import centralized.simulator.core.event.PeerSubscribe;
 import centralized.simulator.core.event.PeerUnsubscribe;
 import centralized.simulator.core.event.ServerStart;
+import centralized.simulator.scenarios.Scenario1;
 import centralized.simulator.snapshot.Snapshot;
 import centralized.system.peer.Peer;
 import centralized.system.peer.PeerAddress;
@@ -76,6 +77,8 @@ public final class Simulator extends ComponentDefinition {
 		peersAddress = new HashMap<BigInteger, PeerAddress>();
 		view = new ConsistentHashtable<BigInteger>();
 
+		idSpaceSize = BigInteger.valueOf(2).pow(Scenario1.NUMBER_OF_BITS);
+		
 		subscribe(handleInit, control);
 		
 		subscribe(handleGenerateReport, timer);

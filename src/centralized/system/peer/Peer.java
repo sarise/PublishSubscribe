@@ -118,7 +118,7 @@ public final class Peer extends ComponentDefinition {
 		@Override
 		public void handle(Notification msg) {
 			System.out.println("Peer " + myAddress.getId() 
-					+ " received a notification about " + msg.getTopic());
+					+ " received a notification [" + msg.getTopic() + ":" + msg.getSequenceNum() + "].");
 		}
 	};
 	
@@ -144,8 +144,10 @@ public final class Peer extends ComponentDefinition {
 	private void publish(BigInteger topicID, String content) {
 		System.out.println("Peer " + myAddress.getId() + " is publishing an event.");
 		
+		//(BigInteger topicID, BigInteger seqNum, String content, Address source, Address destination)
+		
 		trigger(new Publication(topicID, publicationSeqNum, content, myAddress, serverAddress), network);
-		publicationSeqNum.add(BigInteger.ONE);
+		publicationSeqNum = publicationSeqNum.add(BigInteger.ONE);
 	}
 	
 	Handler<Start> handleStart = new Handler<Start>() {

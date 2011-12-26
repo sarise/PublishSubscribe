@@ -1,5 +1,6 @@
 package centralized.simulator.scenarios;
 
+import java.io.FileInputStream;
 import java.util.Properties;
 
 import se.sics.kompics.p2p.experiment.dsl.SimulationScenario;
@@ -14,6 +15,7 @@ public class Scenario1 extends Scenario {
 	public static int NUMBER_OF_BITS;
 	public static String subscriptionsModel;
 	public static String publicationsModel;
+	public static int PUBLICATION_INTERVAL;
 	
 	
 	public static Properties configFile = new Properties();
@@ -21,7 +23,8 @@ public class Scenario1 extends Scenario {
 	private static SimulationScenario scenario = new SimulationScenario() {{
 		
 		try {
-			configFile.load(this.getClass().getClassLoader().getResourceAsStream("simulation.properties"));
+			//configFile.load(this.getClass().getClassLoader().getResourceAsStream("simulation.properties"));
+			configFile.load(new FileInputStream("config/simulation.properties"));
 		} catch (Exception e) {
 			System.err.println("Error: couldn't load the properties file in Scenario1.java");
 		}
@@ -36,6 +39,7 @@ public class Scenario1 extends Scenario {
 		publicationsModel = configFile.getProperty("PublicationsModel");
 		
 		NUMBER_OF_BITS = Integer.parseInt(configFile.getProperty("NumberOfBits"));
+		PUBLICATION_INTERVAL = Integer.parseInt(configFile.getProperty("PublicationsInterval"));
 			
 		StochasticProcess serverstart = new StochasticProcess() {{
 			eventInterArrivalTime(constant(100));
@@ -60,13 +64,13 @@ public class Scenario1 extends Scenario {
 			// Subscription
 			subscribing = new StochasticProcess() {{
 				eventInterArrivalTime(constant(100));
-				raise(1, Operations.allPeerSubscribe, uniform(NUMBER_OF_BITS));
+				raise(1, Operations.allPeerSubscribe);
 			}};
 		}
 		
 		// Publication
 		StochasticProcess publishing = new StochasticProcess() {{
-			eventInterArrivalTime(constant(100));
+			eventInterArrivalTime(constant(PUBLICATION_INTERVAL));
 			raise(NUMBER_OF_PUBLICATIONS, Operations.peerPublish, uniform(NUMBER_OF_BITS));
 		}};
 		

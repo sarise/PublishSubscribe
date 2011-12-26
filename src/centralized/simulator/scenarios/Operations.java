@@ -11,6 +11,7 @@ import centralized.simulator.core.event.PeerSubscribe;
 import centralized.simulator.core.event.PeerUnsubscribe;
 import centralized.simulator.core.event.ServerStart;
 
+import se.sics.kompics.p2p.experiment.dsl.adaptor.Operation;
 import se.sics.kompics.p2p.experiment.dsl.adaptor.Operation1;
 
 @SuppressWarnings("serial")
@@ -45,9 +46,9 @@ public class Operations {
 		};
 		
 //-------------------------------------------------------------------
-	static Operation1<AllPeerSubscribe, BigInteger> allPeerSubscribe = new Operation1<AllPeerSubscribe, BigInteger>() {
-			public AllPeerSubscribe generate(BigInteger id) {
-				return new AllPeerSubscribe(id);
+	static Operation<AllPeerSubscribe> allPeerSubscribe = new Operation<AllPeerSubscribe>() {
+			public AllPeerSubscribe generate() {
+				return new AllPeerSubscribe();
 			}
 		};
 		
